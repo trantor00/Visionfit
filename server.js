@@ -1,32 +1,51 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+dotenv.config();
 
 const app = express();
 
-// ⚡ IMPORTANTE para Render
-const PORT = process.env.PORT || 3000;
-
-// Middlewares
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+/* =========================
+   📦 RUTAS
+========================= */
+import userRoutes from "./routes/userRoutes.js";
+app.use("/api/users", userRoutes);
+
+/* =========================
+   📁 ARCHIVOS ESTÁTICOS
+========================= */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(express.static(path.join(__dirname)));
 
-// Conexión MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('MongoDB conectado'))
-.catch(err => console.error(err));
-
-// Rutas
-app.use('/api/users', require('./routes/userRoutes'));
-
-// Página principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+/* =========================
+   🏠 HOME
+========================= */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Arranque del servidor
+/* =========================
+   🧠 MONGO DB
+========================= */
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB conectado"))
+  .catch((err) => console.log("Error Mongo:", err));
+
+/* =========================
+   🌐 PUERTO DINÁMICO (Render)
+========================= */
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Servidor VisionFit corriendo en puerto ${PORT}`);
 });
