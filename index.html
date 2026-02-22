@@ -1,193 +1,51 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>VisionFit</title>
-
-<!-- 🔥 PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
-
 <style>
-body{font-family: Arial;}
-.dark{background:#111;color:white;}
-#content{line-height:1.7;}
-#content *{font-size:inherit !important;}
+body{
+  font-family: Arial;
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+  font-size: 22px;
+  line-height: 1.8;
+}
+
+h1{
+  text-align: center;
+  font-size: 34px;
+}
+
+p{
+  text-align: center;
+}
+
+input, button{
+  width: 100%;
+  font-size: 22px;
+  padding: 16px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button{
+  background: #111;
+  color: white;
+  border: none;
+}
+
+button:hover{
+  background: #333;
+}
+
+.dark{
+  background:#111;
+  color:white;
+}
+
+#content{
+  margin-top: 20px;
+}
+
+#content *{
+  font-size:inherit !important;
+}
 </style>
-</head>
-
-<body>
-
-<h1>VisionFit</h1>
-<p>Lee cualquier web con máxima comodidad visual</p>
-
-<form id="readerForm">
-  <input id="url" placeholder="Ej: marca, elpais..." />
-  <button type="submit">Abrir lector</button>
-</form>
-
-<br>
-
-<button onclick="increaseFont()">A+</button>
-<button onclick="decreaseFont()">A-</button>
-<button onclick="toggleDark()">🌙</button>
-<button onclick="leerTexto()">🔊 Leer</button>
-<button onclick="pararLectura()">⏹ Parar</button>
-<button onclick="resumen()">🧠 Resumen fácil</button>
-<button onclick="volver()">⬅ Volver</button>
-<button onclick="inicio()">🏠 Inicio</button>
-<button onclick="guardarFavorito()">⭐ Guardar</button>
-<button onclick="verFavoritos()">📚 Favoritos</button>
-
-<hr>
-
-<div id="content"></div>
-
-<hr>
-
-<h2>Registro VisionFit</h2>
-<input id="name" placeholder="Nombre"><br><br>
-<input id="email" placeholder="Email"><br><br>
-<input id="password" placeholder="Contraseña" type="password"><br><br>
-<button onclick="register()">Registrarse</button>
-
-<script>
-let fontSize = 20;
-let historial = [];
-let currentUrl = "";
-
-// 🔥 LECTOR
-document.getElementById("readerForm").addEventListener("submit", e=>{
-  e.preventDefault();
-  openReader();
-});
-
-async function openReader(){
-  let url = document.getElementById("url").value;
-
-  currentUrl = url;
-  historial.push(url);
-
-  const res = await fetch(`/api/reader?url=${encodeURIComponent(url)}`);
-  const html = await res.text();
-
-  document.getElementById("content").innerHTML = html;
-}
-
-// 🔥 navegación interna
-document.addEventListener("click",function(e){
-  const link=e.target.closest("a");
-  if(!link) return;
-
-  const href=link.getAttribute("href");
-  if(!href) return;
-
-  if(href.startsWith("#")) return;
-
-  e.preventDefault();
-  openReaderFromLink(href);
-});
-
-async function openReaderFromLink(url){
-  currentUrl=url;
-  historial.push(url);
-
-  const res=await fetch(`/api/reader?url=${encodeURIComponent(url)}`);
-  const html=await res.text();
-
-  document.getElementById("content").innerHTML=html;
-}
-
-// 🔥 volver
-async function volver(){
-  if(historial.length<=1) return;
-  historial.pop();
-  openReaderFromLink(historial[historial.length-1]);
-}
-
-function inicio(){
-  document.getElementById("content").innerHTML="";
-  historial=[];
-}
-
-// ⭐ favoritos
-async function guardarFavorito(){
-  const email = document.getElementById("email").value;
-  if(!email) return alert("Introduce tu email");
-
-  const title = document.querySelector("h1")?.innerText || currentUrl;
-
-  await fetch("/api/favorites",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({url:currentUrl,title,email})
-  });
-
-  alert("Guardado ⭐");
-}
-
-async function verFavoritos(){
-  const email = document.getElementById("email").value;
-  if(!email) return alert("Introduce tu email");
-
-  const res = await fetch(`/api/favorites?email=${encodeURIComponent(email)}`);
-  const favs = await res.json();
-
-  let html="<h2>Favoritos</h2>";
-
-  favs.forEach(f=>{
-    html+=`<p><a href="${f.url}">${f.title}</a></p>`;
-  });
-
-  document.getElementById("content").innerHTML=html;
-}
-
-// 🔊 voz
-function leerTexto(){
-  const texto=document.getElementById("content").innerText;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(new SpeechSynthesisUtterance(texto));
-}
-
-function pararLectura(){
-  speechSynthesis.cancel();
-}
-
-// 🤖 IA resumen
-async function resumen(){
-  const texto=document.getElementById("content").innerText;
-
-  const res=await fetch("/api/resumen-ia",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({texto})
-  });
-
-  const data=await res.json();
-  document.getElementById("content").innerHTML=data.resumen;
-}
-
-// 👤 registro
-async function register(){
-  const name=document.getElementById("name").value;
-  const email=document.getElementById("email").value;
-  const password=document.getElementById("password").value;
-
-  await fetch("/api/users/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({name,email,password})
-  });
-
-  alert("Usuario registrado");
-}
-
-// 🔥 SERVICE WORKER (PWA)
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(()=>console.log("Service Worker OK"));
-}
-</script>
-
-</body>
-</html>
