@@ -7,10 +7,17 @@ const router = express.Router();
 ========================= */
 router.post("/", async (req, res) => {
   try {
-    const { url } = req.body;
+    let { url } = req.body;
 
     if (!url) {
       return res.status(400).json({ message: "URL requerida" });
+    }
+
+    // 🔥 Añadir https automáticamente
+    url = url.trim();
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
     }
 
     res.json({
