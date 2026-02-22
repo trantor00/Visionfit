@@ -1,137 +1,124 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VisionFit</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      background: #1e73e8;
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      font-size: 18px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .small {
+      font-size: 16px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="container">
+  <h1>VisionFit</h1>
+  <div class="subtitle">Lee cualquier web con máxima comodidad visual</div>
 
-    <h1>VisionFit</h1>
-    <p>Lee cualquier web con máxima comodidad visual</p>
+  <!-- 🔥 INPUT -->
+  <input
+    id="urlInput"
+    placeholder="Ej: marca.com"
+    autocomplete="off"
+  />
 
-    <!-- BUSCADOR -->
-    <input id="urlInput" placeholder="Pega aquí un enlace web o escribe el nombre">
-    <button onclick="openReader()">Abrir lector</button>
+  <!-- 🔥 BOTÓN -->
+  <button class="btn" onclick="openReader()">Abrir lector</button>
 
-    <!-- CONTROLES ACCESIBILIDAD -->
-    <div class="controls">
-      <button onclick="increaseFont()">A+</button>
-      <button onclick="decreaseFont()">A-</button>
-      <button onclick="toggleDark()">🌙</button>
-      <button onclick="speak()">🔊 Leer</button>
-      <button onclick="stopSpeech()">⏹ Parar</button>
-      <button onclick="easySummary()">🧠 Resumen fácil</button>
-      <button onclick="goBack()">⬅ Volver</button>
-      <button onclick="goHome()">🏠 Inicio</button>
-      <button onclick="saveArticle()">⭐ Guardar</button>
-      <button onclick="showFavorites()">📚 Favoritos</button>
-    </div>
-
-    <!-- CONTENIDO -->
-    <div id="content">Aquí aparecerá la web</div>
-
-    <hr>
-
-    <!-- REGISTRO -->
-    <h2>Registro VisionFit</h2>
-
-    <input id="name" placeholder="Nombre">
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Contraseña">
-
-    <button onclick="register()">Registrarse</button>
-
+  <!-- 🔥 BOTONES -->
+  <div class="grid">
+    <button class="btn small">A+</button>
+    <button class="btn small">A-</button>
+    <button class="btn small">🌙</button>
+    <button class="btn small">🔊 Leer</button>
+    <button class="btn small">⏹ Parar</button>
+    <button class="btn small">🧠 Resumen fácil</button>
+    <button class="btn small">⬅ Volver</button>
+    <button class="btn small">🏠 Inicio</button>
+    <button class="btn small">⭐ Guardar</button>
+    <button class="btn small">📚 Favoritos</button>
   </div>
 
-  <!-- SCRIPT -->
   <script>
-    let fontSize = 18;
-    let currentText = "";
-    let historyStack = [];
+    const input = document.getElementById("urlInput");
 
-    function openReader() {
-      const url = document.getElementById("urlInput").value;
-      historyStack.push(url);
-
-      fetch("/api/reader", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
-      })
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("content").innerHTML = html;
-        currentText = document.getElementById("content").innerText;
-      })
-      .catch(() => {
-        document.getElementById("content").innerHTML = "No se pudo extraer el contenido";
-      });
-    }
-
-    function increaseFont() {
-      fontSize += 2;
-      document.getElementById("content").style.fontSize = fontSize + "px";
-    }
-
-    function decreaseFont() {
-      fontSize -= 2;
-      document.getElementById("content").style.fontSize = fontSize + "px";
-    }
-
-    function toggleDark() {
-      document.body.classList.toggle("dark");
-    }
-
-    function speak() {
-      const speech = new SpeechSynthesisUtterance(currentText);
-      speech.lang = "es-ES";
-      window.speechSynthesis.speak(speech);
-    }
-
-    function stopSpeech() {
-      window.speechSynthesis.cancel();
-    }
-
-    function easySummary() {
-      fetch("/api/summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: currentText })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("content").innerHTML = "<h3>Resumen:</h3>" + data.summary;
-      });
-    }
-
-    function goBack() {
-      historyStack.pop();
-      const previous = historyStack.pop();
-      if (previous) {
-        document.getElementById("urlInput").value = previous;
+    // 🔥 ENTER abre lector
+    input.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
         openReader();
       }
-    }
+    });
 
-    function goHome() {
-      document.getElementById("content").innerHTML = "Aquí aparecerá la web";
-    }
+    async function openReader() {
+      let url = input.value.trim();
 
-    function saveArticle() {
-      alert("Función guardado en desarrollo");
-    }
+      if (!url) {
+        alert("Introduce una web");
+        return;
+      }
 
-    function showFavorites() {
-      alert("Favoritos en desarrollo");
-    }
+      try {
+        const res = await fetch("/api/reader", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ url })
+        });
 
-    function register() {
-      alert("Registro conectado con backend");
+        const data = await res.json();
+
+        if (data.url) {
+          window.open(data.url, "_blank");
+        }
+
+      } catch (error) {
+        alert("Error al abrir la web");
+      }
     }
   </script>
 
