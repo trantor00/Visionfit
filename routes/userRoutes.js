@@ -1,32 +1,38 @@
-const express = require("express");
-const router = express.Router();
-const User = require("../models/User");
+import express from "express";
 
-// Registro de usuario
+const router = express.Router();
+
+/* =========================
+   👤 REGISTRO DE USUARIO
+========================= */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Verificar si el usuario ya existe
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "El usuario ya existe" });
-    }
-
-    // Crear usuario
-    const user = new User({
-      name,
-      email,
-      password
+    // Aquí luego añadiremos MongoDB real
+    res.status(201).json({
+      message: "Usuario registrado correctamente",
+      user: { name, email }
     });
-
-    await user.save();
-
-    res.json({ message: "Usuario registrado correctamente" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error en el servidor" });
+    res.status(500).json({ message: "Error en el registro" });
   }
 });
 
-module.exports = router;
+/* =========================
+   🔑 LOGIN
+========================= */
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    res.status(200).json({
+      message: "Login correcto",
+      token: "demo-token"
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error en el login" });
+  }
+});
+
+export default router;
