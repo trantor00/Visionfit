@@ -16,7 +16,10 @@ app.use(express.json());
    📦 RUTAS
 ========================= */
 import userRoutes from "./routes/userRoutes.js";
+import readerRoutes from "./routes/readerRoutes.js";
+
 app.use("/api/users", userRoutes);
+app.use("/api/reader", readerRoutes);
 
 /* =========================
    📁 ARCHIVOS ESTÁTICOS

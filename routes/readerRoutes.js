@@ -13,8 +13,6 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "URL requerida" });
     }
 
-    // De momento solo devolvemos la URL.
-    // Luego aquí meteremos IA, resumen, etc.
     res.json({
       message: "Lector funcionando",
       url
