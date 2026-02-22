@@ -1,51 +1,139 @@
-<style>
-body{
-  font-family: Arial;
-  max-width: 700px;
-  margin: auto;
-  padding: 20px;
-  font-size: 22px;
-  line-height: 1.8;
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisionFit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-h1{
-  text-align: center;
-  font-size: 34px;
-}
+<body>
 
-p{
-  text-align: center;
-}
+  <div class="container">
 
-input, button{
-  width: 100%;
-  font-size: 22px;
-  padding: 16px;
-  margin: 8px 0;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
+    <h1>VisionFit</h1>
+    <p>Lee cualquier web con máxima comodidad visual</p>
 
-button{
-  background: #111;
-  color: white;
-  border: none;
-}
+    <!-- BUSCADOR -->
+    <input id="urlInput" placeholder="Pega aquí un enlace web o escribe el nombre">
+    <button onclick="openReader()">Abrir lector</button>
 
-button:hover{
-  background: #333;
-}
+    <!-- CONTROLES ACCESIBILIDAD -->
+    <div class="controls">
+      <button onclick="increaseFont()">A+</button>
+      <button onclick="decreaseFont()">A-</button>
+      <button onclick="toggleDark()">🌙</button>
+      <button onclick="speak()">🔊 Leer</button>
+      <button onclick="stopSpeech()">⏹ Parar</button>
+      <button onclick="easySummary()">🧠 Resumen fácil</button>
+      <button onclick="goBack()">⬅ Volver</button>
+      <button onclick="goHome()">🏠 Inicio</button>
+      <button onclick="saveArticle()">⭐ Guardar</button>
+      <button onclick="showFavorites()">📚 Favoritos</button>
+    </div>
 
-.dark{
-  background:#111;
-  color:white;
-}
+    <!-- CONTENIDO -->
+    <div id="content">Aquí aparecerá la web</div>
 
-#content{
-  margin-top: 20px;
-}
+    <hr>
 
-#content *{
-  font-size:inherit !important;
-}
-</style>
+    <!-- REGISTRO -->
+    <h2>Registro VisionFit</h2>
+
+    <input id="name" placeholder="Nombre">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Contraseña">
+
+    <button onclick="register()">Registrarse</button>
+
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    let fontSize = 18;
+    let currentText = "";
+    let historyStack = [];
+
+    function openReader() {
+      const url = document.getElementById("urlInput").value;
+      historyStack.push(url);
+
+      fetch("/api/reader", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      })
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("content").innerHTML = html;
+        currentText = document.getElementById("content").innerText;
+      })
+      .catch(() => {
+        document.getElementById("content").innerHTML = "No se pudo extraer el contenido";
+      });
+    }
+
+    function increaseFont() {
+      fontSize += 2;
+      document.getElementById("content").style.fontSize = fontSize + "px";
+    }
+
+    function decreaseFont() {
+      fontSize -= 2;
+      document.getElementById("content").style.fontSize = fontSize + "px";
+    }
+
+    function toggleDark() {
+      document.body.classList.toggle("dark");
+    }
+
+    function speak() {
+      const speech = new SpeechSynthesisUtterance(currentText);
+      speech.lang = "es-ES";
+      window.speechSynthesis.speak(speech);
+    }
+
+    function stopSpeech() {
+      window.speechSynthesis.cancel();
+    }
+
+    function easySummary() {
+      fetch("/api/summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: currentText })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("content").innerHTML = "<h3>Resumen:</h3>" + data.summary;
+      });
+    }
+
+    function goBack() {
+      historyStack.pop();
+      const previous = historyStack.pop();
+      if (previous) {
+        document.getElementById("urlInput").value = previous;
+        openReader();
+      }
+    }
+
+    function goHome() {
+      document.getElementById("content").innerHTML = "Aquí aparecerá la web";
+    }
+
+    function saveArticle() {
+      alert("Función guardado en desarrollo");
+    }
+
+    function showFavorites() {
+      alert("Favoritos en desarrollo");
+    }
+
+    function register() {
+      alert("Registro conectado con backend");
+    }
+  </script>
+
+</body>
+</html>
